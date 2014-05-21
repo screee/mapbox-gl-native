@@ -913,34 +913,6 @@ module.exports = {
             "bucket": "waterway_stream"
         },
         {
-            "name": "hillshade_full_highlight",
-            "bucket": "hillshade_full_highlight"
-        },
-        {
-            "name": "hillshade_medium_highlight",
-            "bucket": "hillshade_medium_highlight"
-        },
-        {
-            "name": "hillshade_medium_shadow",
-            "bucket": "hillshade_medium_shadow"
-        },
-        {
-            "name": "hillshade_full_shadow",
-            "bucket": "hillshade_full_shadow"
-        },
-        {
-            "name": "contour_line_loud",
-            "bucket": "contour_line_10"
-        },
-        {
-            "name": "contour_line_loud",
-            "bucket": "contour_line_5"
-        },
-        {
-            "name": "contour_line_regular",
-            "bucket": "contour_line_other"
-        },
-        {
             "name": "barrier_line_gate",
             "bucket": "barrier_line_gate"
         },
@@ -1184,6 +1156,34 @@ module.exports = {
             "name": "bridge_motorway",
             "bucket": "bridge_motorway"
         },
+                  {
+                  "name": "hillshade_full_highlight",
+                  "bucket": "hillshade_full_highlight"
+                  },
+                  {
+                  "name": "hillshade_medium_highlight",
+                  "bucket": "hillshade_medium_highlight"
+                  },
+                  {
+                  "name": "hillshade_medium_shadow",
+                  "bucket": "hillshade_medium_shadow"
+                  },
+                  {
+                  "name": "hillshade_full_shadow",
+                  "bucket": "hillshade_full_shadow"
+                  },
+                  {
+                  "name": "contour_line_loud",
+                  "bucket": "contour_line_10"
+                  },
+                  {
+                  "name": "contour_line_loud",
+                  "bucket": "contour_line_5"
+                  },
+                  {
+                  "name": "contour_line_regular",
+                  "bucket": "contour_line_other"
+                  },
         {
             "name": "road_path_footway",
             "bucket": "bridge_path_footway"
@@ -2592,7 +2592,7 @@ module.exports = {
                     "antialias": false,
                     "opacity": [
                         "stops",
-                        {"z": 14, "val": 0.4},
+                        {"z": 0, "val": 0.4},
                         {"z": 15, "val": 0.3},
                         {"z": 17, "val": 0.2},
                         {"z": 18, "val": 0.1}
@@ -2605,6 +2605,7 @@ module.exports = {
                     "antialias": false,
                     "opacity": [
                         "stops",
+                        {"z": 0, "val": 0.3},
                         {"z": 15, "val": 0.3},
                         {"z": 17, "val": 0.2},
                         {"z": 18, "val": 0.15}
