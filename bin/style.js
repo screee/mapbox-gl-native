@@ -1341,7 +1341,7 @@ module.exports = {
         "grass_night": "#23948a",
         "scrub_night": "#31a186",
         "wood_night": "#45b581",
-        "park_night": "#6ad0a1",
+        "park_night": "#56b5aa",
         "snow_night": "#5ad9fe",
         "rock_night": "#999",
         "sand_night": "#437162",
@@ -1359,7 +1359,7 @@ module.exports = {
         "motorway_night": "#eee",
         "main_night": "#95ccdb",
         "street_night": "#0291b5",
-        "contour_night": "#ffff80"
+        "contour_night": "#3f2615"
     },
     "classes": [
         {
@@ -2689,7 +2689,7 @@ module.exports = {
                 "hillshade_full_highlight": {
                     "transition-color": {"duration": 300},
                     "transition-opacity": {"duration": 300},
-                    "color": "#fdfdad",
+                    "color": "#afafce",
                     "antialias": false,
                     "opacity": [
                         "stops",
@@ -2701,7 +2701,7 @@ module.exports = {
                 "hillshade_medium_highlight": {
                     "transition-color": {"duration": 300},
                     "transition-opacity": {"duration": 300},
-                    "color": "#ff9280",
+                    "color": "#9d84af",
                     "antialias": false,
                     "opacity": [
                         "stops",
