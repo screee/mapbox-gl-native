@@ -263,8 +263,6 @@ module.exports = {
         "contour_label": {
             "source": "outdoors",
             "layer": "contour",
-            "field": "index",
-            "value": 10,
             "path": "curve",
             "text_field": "ele",
             "font": "Open Sans Regular, Arial Unicode MS Regular",
@@ -773,7 +771,7 @@ module.exports = {
             "layer": "road_label",
             "field": "class",
             "value": ["motorway","main"],
-            "text_field": "name",
+            "text_field": "ref",
             "path": "curve",
             "padding": 2,
             "font": "Open Sans Regular, Arial Unicode MS Regular",
@@ -787,7 +785,7 @@ module.exports = {
             "layer": "road_label",
             "field": "class",
             "value": ["street","street_limited"],
-            "text_field": "name",
+            "text_field": "reflen",
             "path": "curve",
             "padding": 2,
             "font": "Open Sans Regular, Arial Unicode MS Regular",
@@ -801,7 +799,7 @@ module.exports = {
             "layer": "road_label",
             "field": "class",
             "value": ["service","driveway","path"],
-            "text_field": "name",
+            "text_field": "len",
             "path": "curve",
             "padding": 2,
             "font": "Open Sans Regular, Arial Unicode MS Regular",
@@ -908,7 +906,19 @@ module.exports = {
             "fontSize": 10,
             "feature_type": "point",
             "type": "text"
-        }
+        },
+        "house_number": {
+            "source": "outdoors",
+            "layer": "housenum_label",
+            "text_field": "house_num",
+            "path": "horizontal",
+            "padding": 2,
+            "font": "Open Sans Semibold, Arial Unicode MS Bold",
+            "fontSize": 10,
+            "feature_type": "point",
+            "type": "text"
+        },
+
     },
     "structure": [
         {
@@ -1426,6 +1436,10 @@ module.exports = {
         {
             "name": "poi_aerodrome",
             "bucket": "poi_aerodrome"
+        },
+        {
+            "name": "house_number",
+            "bucket": "house_number"
         }
     ],
     "constants": {
@@ -2449,6 +2463,11 @@ module.exports = {
                         {"z": 13.25, "val": 1}
                     ],
                     "antialias": false
+                },
+                "house_number": {
+                    "color": "#fff",
+                    "size": 10,
+                    "stroke": "text2_stroke_night",
                 }
             }
         },
@@ -3201,6 +3220,11 @@ module.exports = {
                         {"z": 13.25, "val": 1}
                     ],
                     "antialias": false
+                },
+                "house_number": {
+                    "color": "#fff",
+                    "size": 10,
+                    "stroke": "text2_stroke_night",
                 }
             }
         }
