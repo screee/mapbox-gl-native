@@ -562,8 +562,6 @@ void Map::render() {
     if (transform.needsTransition() || style->hasTransitions()) {
         update();
     }
-
-    glFlush();
 }
 
 void Map::renderLayers(std::shared_ptr<StyleLayerGroup> group) {

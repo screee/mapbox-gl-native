@@ -17,6 +17,9 @@
 #include <string>
 #include <map>
 
+// For test fixture.
+class Benchmark_Render_Test;
+
 namespace llmr {
 
 class Source;
@@ -187,6 +190,8 @@ private:
     uv_async_t *async_terminate = nullptr;
     uv_async_t *async_render = nullptr;
     uv_async_t *async_cleanup = nullptr;
+
+    friend class ::Benchmark_Render_Test;
 };
 
 }

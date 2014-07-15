@@ -174,7 +174,26 @@
             "../deps/gtest/gtest.gyp:gtest",
             "../llmr.gyp:llmr-x86",
             "link_gl",
-            '../llmr.gyp:copy_default_stylesheet',
+        ]
+    },
+    {
+        "target_name": "benchmark",
+        "product_name": "test_benchmark",
+        "type": "executable",
+        "libraries": [
+            "-lpthread",
+        ],
+        "sources": [
+            "./main.cpp",
+            "./benchmark.cpp",
+            "../common/headless_view.hpp",
+            "../common/headless_view.cpp",
+            "./fixtures/fixture_request.cpp",
+        ],
+        "dependencies": [
+            "../deps/gtest/gtest.gyp:gtest",
+            "../llmr.gyp:llmr-x86",
+            "link_gl",
         ]
     },
     {
