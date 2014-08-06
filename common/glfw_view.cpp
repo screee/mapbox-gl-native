@@ -78,12 +78,6 @@ void GLFWView::key(GLFWwindow *window, int key, int /*scancode*/, int action, in
             if (!mods)
                 view->map->resetPosition();
             break;
-        case GLFW_KEY_R:
-            if (!mods) {
-                view->map->setDefaultTransitionDuration(300);
-                view->map->toggleClass("night");
-            }
-            break;
         case GLFW_KEY_N:
             if (!mods)
                 view->map->resetNorth();
