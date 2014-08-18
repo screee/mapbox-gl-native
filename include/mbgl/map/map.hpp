@@ -27,6 +27,7 @@ class StyleLayer;
 class StyleLayerGroup;
 class StyleSource;
 class Texturepool;
+class FileSource;
 class View;
 
 class Map : private util::noncopyable {
@@ -43,6 +44,8 @@ public:
 
     // Triggers a lazy rerender: only performs a render when the map is not clean.
     void rerender();
+
+    void renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass, const Tile::ID* id = nullptr, const mat4* matrix = nullptr);
 
     // Forces a map update: always triggers a rerender.
     void update();
@@ -64,7 +67,8 @@ public:
     void toggleClass(const std::string &name);
     const std::vector<std::string> &getAppliedClasses() const;
     void setDefaultTransitionDuration(uint64_t duration_milliseconds = 0);
-    void setStyleJSON(std::string newStyleJSON);
+    void setStyleURL(const std::string &url);
+    void setStyleJSON(std::string newStyleJSON, const std::string &base = "");
     std::string getStyleJSON() const;
     void setAccessToken(std::string access_token);
     std::string getAccessToken() const;
@@ -111,6 +115,7 @@ public:
 
 public:
     inline const TransformState &getState() const { return state; }
+    inline std::shared_ptr<FileSource> getFileSource() const { return fileSource; }
     inline std::shared_ptr<Style> getStyle() const { return style; }
     inline std::shared_ptr<GlyphAtlas> getGlyphAtlas() { return glyphAtlas; }
     inline std::shared_ptr<GlyphStore> getGlyphStore() { return glyphStore; }
@@ -120,6 +125,7 @@ public:
     inline std::shared_ptr<uv::loop> getLoop() { return loop; }
     inline timestamp getAnimationTime() const { return animationTime; }
     inline timestamp getTime() const { return animationTime; }
+    void updateTiles();
 
 private:
     // uv async callbacks
@@ -134,7 +140,6 @@ private:
     void updateSources();
     void updateSources(const std::shared_ptr<StyleLayerGroup> &group);
 
-    void updateTiles();
     void updateRenderState();
 
     size_t countLayers(const std::vector<LayerDescription>& layers);
@@ -143,12 +148,18 @@ private:
     // the stylesheet.
     void prepare();
 
-    enum RenderPass { Opaque, Translucent };
 
     // Unconditionally performs a render with the current map state.
     void render();
     void renderLayers(std::shared_ptr<StyleLayerGroup> group);
-    void renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass);
+
+private:
+    bool async = false;
+    std::shared_ptr<uv::loop> loop;
+    std::unique_ptr<uv::thread> thread;
+    uv_async_t *async_terminate = nullptr;
+    uv_async_t *async_render = nullptr;
+    uv_async_t *async_cleanup = nullptr;
 
 private:
     // If cleared, the next time the render thread attempts to render the map, it will *actually*
@@ -170,6 +181,8 @@ private:
     Transform transform;
     TransformState state;
 
+    std::shared_ptr<FileSource> fileSource;
+
     std::shared_ptr<Style> style;
     std::shared_ptr<GlyphAtlas> glyphAtlas;
     std::shared_ptr<GlyphStore> glyphStore;
@@ -189,13 +202,6 @@ private:
 
     std::set<std::shared_ptr<StyleSource>> activeSources;
 
-private:
-    bool async = false;
-    std::shared_ptr<uv::loop> loop;
-    uv_thread_t thread;
-    uv_async_t *async_terminate = nullptr;
-    uv_async_t *async_render = nullptr;
-    uv_async_t *async_cleanup = nullptr;
 };
 
 }

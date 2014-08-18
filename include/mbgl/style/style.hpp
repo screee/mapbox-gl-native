@@ -28,6 +28,7 @@ public:
 
 public:
     Style();
+    ~Style();
 
     void loadJSON(const uint8_t *const data);
 
@@ -62,7 +63,7 @@ private:
     PropertyTransition defaultTransition;
     bool initial_render_complete = false;
 
-    mutable uv::rwlock mtx;
+    std::unique_ptr<uv::rwlock> mtx;
 };
 
 }

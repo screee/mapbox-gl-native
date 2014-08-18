@@ -13,7 +13,9 @@
 #include <mbgl/util/token.hpp>
 #include <mbgl/geometry/glyph_atlas.hpp>
 #include <mbgl/text/glyph_store.hpp>
+#include <mbgl/text/collision.hpp>
 #include <mbgl/text/glyph.hpp>
+#include <mbgl/map/map.hpp>
 
 #include <mbgl/util/std.hpp>
 #include <mbgl/util/utf.hpp>
@@ -28,7 +30,12 @@ namespace regex_impl = boost;
 namespace regex_impl = std;
 #endif
 
-using namespace mbgl;
+namespace mbgl {
+
+// Note: This destructor is seemingly empty, but we need to declare it anyway
+// because this object has a std::unique_ptr<> of a forward-declare type in
+// its header file.
+TileParser::~TileParser() = default;
 
 TileParser::TileParser(const std::string &data, VectorTileData &tile,
                        const std::shared_ptr<const Style> &style,
@@ -43,7 +50,7 @@ TileParser::TileParser(const std::string &data, VectorTileData &tile,
       glyphStore(glyphStore),
       spriteAtlas(spriteAtlas),
       sprite(sprite),
-      collision(tile.id.z, 4096, tile.source.tile_size, tile.depth) {
+      collision(std::make_unique<Collision>(tile.id.z, 4096, tile.source.tile_size, tile.depth)) {
 }
 
 void TileParser::parse() {
@@ -69,7 +76,8 @@ void TileParser::parseStyleLayers(std::shared_ptr<StyleLayerGroup> group) {
         } else if (layer_desc->layers) {
             // This is a layer group.
             parseStyleLayers(layer_desc->layers);
-        } else if (layer_desc->bucket) {
+        }
+        if (layer_desc->bucket) {
             // This is a singular layer. Check if this bucket already exists. If not,
             // parse this bucket.
             auto bucket_it = tile.buckets.find(layer_desc->bucket->name);
@@ -112,6 +120,8 @@ std::unique_ptr<Bucket> TileParser::createBucket(std::shared_ptr<StyleBucket> bu
         } else {
             fprintf(stderr, "[WARNING] unknown bucket render type for layer '%s' (source layer '%s')\n", bucket_desc->name.c_str(), bucket_desc->source_layer.c_str());
         }
+    } else if (bucket_desc->render.is<StyleBucketRaster>() && bucket_desc->render.get<StyleBucketRaster>().prerendered == true) {
+        return createRasterBucket(texturePool, bucket_desc->render.get<StyleBucketRaster>());
     } else {
         // The layer specified in the bucket does not exist. Do nothing.
         if (debug::tileParseWarnings) {
@@ -147,6 +157,11 @@ std::unique_ptr<Bucket> TileParser::createFillBucket(const VectorTileLayer& laye
     return obsolete() ? nullptr : std::move(bucket);
 }
 
+std::unique_ptr<Bucket> TileParser::createRasterBucket(const std::shared_ptr<Texturepool> &texturepool, const StyleBucketRaster &raster) {
+    std::unique_ptr<RasterBucket> bucket = std::make_unique<RasterBucket>(texturepool, raster);
+    return obsolete() ? nullptr : std::move(bucket);
+}
+
 std::unique_ptr<Bucket> TileParser::createLineBucket(const VectorTileLayer& layer, const FilterExpression &filter, const StyleBucketLine &line) {
     std::unique_ptr<LineBucket> bucket = std::make_unique<LineBucket>(tile.lineVertexBuffer, tile.triangleElementsBuffer, tile.pointElementsBuffer, line);
     addBucketGeometries(bucket, layer, filter);
@@ -154,7 +169,9 @@ std::unique_ptr<Bucket> TileParser::createLineBucket(const VectorTileLayer& laye
 }
 
 std::unique_ptr<Bucket> TileParser::createSymbolBucket(const VectorTileLayer& layer, const FilterExpression &filter, const StyleBucketSymbol &symbol) {
-    std::unique_ptr<SymbolBucket> bucket = std::make_unique<SymbolBucket>(symbol, collision);
+    std::unique_ptr<SymbolBucket> bucket = std::make_unique<SymbolBucket>(symbol, *collision);
     bucket->addFeatures(layer, filter, tile.id, *spriteAtlas, *sprite, *glyphAtlas, *glyphStore);
     return obsolete() ? nullptr : std::move(bucket);
+}
+
 }

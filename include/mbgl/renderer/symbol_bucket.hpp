@@ -50,10 +50,13 @@ typedef std::vector<Symbol> Symbols;
 
 
 class SymbolBucket : public Bucket {
+    typedef ElementGroup<1> TextElementGroup;
+    typedef ElementGroup<1> IconElementGroup;
+
 public:
     SymbolBucket(const StyleBucketSymbol &properties, Collision &collision);
 
-    virtual void render(Painter &painter, std::shared_ptr<StyleLayer> layer_desc, const Tile::ID &id);
+    virtual void render(Painter &painter, std::shared_ptr<StyleLayer> layer_desc, const Tile::ID &id, const mat4 &matrix);
     virtual bool hasData() const;
     virtual bool hasTextData() const;
     virtual bool hasIconData() const;
@@ -94,13 +97,13 @@ private:
     struct {
         TextVertexBuffer vertices;
         TriangleElementsBuffer triangles;
-        std::vector<ElementGroup> groups;
+        std::vector<TextElementGroup> groups;
     } text;
 
     struct {
         IconVertexBuffer vertices;
         TriangleElementsBuffer triangles;
-        std::vector<ElementGroup> groups;
+        std::vector<IconElementGroup> groups;
     } icon;
 
 };

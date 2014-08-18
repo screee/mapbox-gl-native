@@ -5,9 +5,8 @@
 
 namespace mbgl {
 
-StyleLayer::StyleLayer(const std::string &id, std::map<ClassID, ClassProperties> &&styles,
-                       std::unique_ptr<const RasterizeProperties> &&rasterize)
-    : id(id), styles(std::move(styles)), rasterize(std::move(rasterize)) {}
+StyleLayer::StyleLayer(const std::string &id, std::map<ClassID, ClassProperties> &&styles)
+    : id(id), styles(std::move(styles)) {}
 
 bool StyleLayer::isBackground() const {
     return type == StyleLayerType::Background;
@@ -218,18 +217,11 @@ void StyleLayer::applyStyleProperties<SymbolProperties>(const float z, const tim
 }
 
 template <>
-void StyleLayer::applyStyleProperties<CompositeProperties>(const float z, const timestamp now) {
-    properties.set<CompositeProperties>();
-    CompositeProperties &composite = properties.get<CompositeProperties>();
-    applyStyleProperty(PropertyKey::CompositeOpacity, composite.opacity, z, now);
-}
-
-template <>
 void StyleLayer::applyStyleProperties<RasterProperties>(const float z, const timestamp now) {
     properties.set<RasterProperties>();
     RasterProperties &raster = properties.get<RasterProperties>();
     applyStyleProperty(PropertyKey::RasterOpacity, raster.opacity, z, now);
-    applyStyleProperty(PropertyKey::RasterSpin, raster.spin, z, now);
+    applyStyleProperty(PropertyKey::RasterHueRotate, raster.hue_rotate, z, now);
     applyStyleProperty(PropertyKey::RasterBrightnessLow, raster.brightness[0], z, now);
     applyStyleProperty(PropertyKey::RasterBrightnessHigh, raster.brightness[1], z, now);
     applyStyleProperty(PropertyKey::RasterSaturation, raster.saturation, z, now);
@@ -256,7 +248,6 @@ void StyleLayer::updateProperties(float z, const timestamp now) {
         case StyleLayerType::Line: applyStyleProperties<LineProperties>(z, now); break;
         case StyleLayerType::Symbol: applyStyleProperties<SymbolProperties>(z, now); break;
         case StyleLayerType::Raster: applyStyleProperties<RasterProperties>(z, now); break;
-        case StyleLayerType::Composite: applyStyleProperties<CompositeProperties>(z, now); break;
         case StyleLayerType::Background: applyStyleProperties<BackgroundProperties>(z, now); break;
         default: properties.set<std::false_type>(); break;
     }

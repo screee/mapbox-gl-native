@@ -40,6 +40,7 @@ public:
 
     PlacementType placement = PlacementType::Point;
     float min_distance = 250.0f;
+    bool avoid_edges = false;
 
     struct {
         bool allow_overlap = false;
@@ -82,6 +83,10 @@ public:
 
 class StyleBucketRaster {
 public:
+    bool prerendered = false;
+    uint16_t size = 256;
+    float blur = 0.0f;
+    float buffer = 0.03125f;
 };
 
 typedef util::variant<StyleBucketFill, StyleBucketLine, StyleBucketSymbol,

@@ -76,20 +76,10 @@ struct SymbolProperties {
     }
 };
 
-
-struct CompositeProperties {
-    inline CompositeProperties() {}
-    float opacity = 1.0f;
-
-    inline bool isVisible() const {
-        return opacity > 0;
-    }
-};
-
 struct RasterProperties {
     inline RasterProperties() {}
     float opacity = 1.0f;
-    float spin = 0.0f;
+    float hue_rotate = 0.0f;
     std::array<float, 2> brightness = {{ 0, 1 }};
     float saturation = 0.0f;
     float contrast = 0.0f;
@@ -109,7 +99,6 @@ typedef util::variant<
     FillProperties,
     LineProperties,
     SymbolProperties,
-    CompositeProperties,
     RasterProperties,
     BackgroundProperties,
     std::false_type

@@ -9,7 +9,7 @@
 #include <mbgl/util/clip_ids.hpp>
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/constants.hpp>
-#include <mbgl/util/uv.hpp>
+#include <mbgl/util/uv_detail.hpp>
 #include <mbgl/util/std.hpp>
 #include <mbgl/style/style.hpp>
 #include <mbgl/text/glyph_store.hpp>
@@ -18,6 +18,8 @@
 #include <mbgl/style/style_bucket.hpp>
 #include <mbgl/util/texturepool.hpp>
 #include <mbgl/geometry/sprite_atlas.hpp>
+#include <mbgl/util/filesource.hpp>
+#include <mbgl/platform/log.hpp>
 
 #include <algorithm>
 #include <memory>
@@ -29,15 +31,17 @@
 using namespace mbgl;
 
 Map::Map(View& view)
-    : view(view),
+    : loop(std::make_shared<uv::loop>()),
+      thread(std::make_unique<uv::thread>()),
+      view(view),
       transform(view),
+      fileSource(std::make_shared<FileSource>()),
       style(std::make_shared<Style>()),
       glyphAtlas(std::make_shared<GlyphAtlas>(1024, 1024)),
-      glyphStore(std::make_shared<GlyphStore>()),
+      glyphStore(std::make_shared<GlyphStore>(fileSource)),
       spriteAtlas(std::make_shared<SpriteAtlas>(512, 512)),
       texturepool(std::make_shared<Texturepool>()),
-      painter(*this),
-      loop(std::make_shared<uv::loop>()) {
+      painter(*this) {
 
     view.initialize(this);
 
@@ -75,7 +79,7 @@ void Map::start() {
     uv_async_init(**loop, async_cleanup, cleanup);
     async_cleanup->data = this;
 
-    uv_thread_create(&thread, [](void *arg) {
+    uv_thread_create(*thread, [](void *arg) {
         Map *map = static_cast<Map *>(arg);
         map->run();
     }, this);
@@ -86,7 +90,7 @@ void Map::stop() {
         uv_async_send(async_terminate);
     }
 
-    uv_thread_join(&thread);
+    uv_thread_join(*thread);
 
     // Run the event loop once to make sure our async delete handlers are called.
     uv_run(**loop, UV_RUN_ONCE);
@@ -169,7 +173,7 @@ void Map::render(uv_async_t *async) {
 void Map::terminate(uv_async_t *async) {
     // Closes all open handles on the loop. This means that the loop will automatically terminate.
     uv_loop_t *loop = static_cast<uv_loop_t *>(async->data);
-    uv_walk(loop, [](uv_handle_t *handle, void *arg) {
+    uv_walk(loop, [](uv_handle_t *handle, void */*arg*/) {
         if (!uv_is_closing(handle)) {
             uv_close(handle, NULL);
         }
@@ -184,10 +188,29 @@ void Map::setup() {
     painter.setup();
 }
 
-void Map::setStyleJSON(std::string newStyleJSON) {
+void Map::setStyleURL(const std::string &url) {
+    fileSource->load(ResourceType::JSON, url, [&](platform::Response *res) {
+        if (res->code == 200) {
+            // Calculate the base
+            const size_t pos = url.rfind('/');
+            std::string base = "";
+            if (pos != std::string::npos) {
+                base = url.substr(0, pos + 1);
+            }
+
+            this->setStyleJSON(res->body, base);
+        } else {
+            Log::Error(Event::Setup, "loading style failed: %d (%s)", res->code, res->error_message.c_str());
+        }
+    }, loop);
+}
+
+
+void Map::setStyleJSON(std::string newStyleJSON, const std::string &base) {
     styleJSON.swap(newStyleJSON);
     sprite.reset();
     style->loadJSON((const uint8_t *)styleJSON.c_str());
+    fileSource->setBase(base);
     glyphStore->setURL(style->glyph_url);
     update();
 }
@@ -208,7 +231,7 @@ std::shared_ptr<Sprite> Map::getSprite() {
     const float pixelRatio = state.getPixelRatio();
     const std::string &sprite_url = style->getSpriteURL();
     if (!sprite || sprite->pixelRatio != pixelRatio) {
-        sprite = Sprite::Create(sprite_url, pixelRatio);
+        sprite = Sprite::Create(sprite_url, pixelRatio, fileSource);
     }
 
     return sprite;
@@ -509,16 +532,7 @@ void Map::prepare() {
         transform.updateTransitions(animationTime);
     }
 
-    const TransformState oldState = state;
     state = transform.currentState();
-
-    bool pixelRatioChanged = oldState.getPixelRatio() != state.getPixelRatio();
-    bool dimensionsChanged = oldState.getFramebufferWidth() != state.getFramebufferWidth() ||
-                             oldState.getFramebufferHeight() != state.getFramebufferHeight();
-
-    if (pixelRatioChanged || dimensionsChanged) {
-        painter.clearFramebuffers();
-    }
 
     animationTime = util::now();
     updateSources();
@@ -535,9 +549,11 @@ void Map::render() {
 #if defined(DEBUG)
     std::vector<std::string> debug;
 #endif
-    painter.clear();
 
-    painter.resetFramebuffer();
+    glyphAtlas->upload();
+    spriteAtlas->upload();
+
+    painter.clear();
 
     painter.resize();
 
@@ -588,7 +604,7 @@ void Map::renderLayers(std::shared_ptr<StyleLayerGroup> group) {
     for (auto it = group->layers.rbegin(), end = group->layers.rend(); it != end; ++it, ++i) {
         painter.setOpaque();
         painter.setStrata(i * strata_thickness);
-        renderLayer(*it, Opaque);
+        renderLayer(*it, RenderPass::Opaque);
     }
     if (debug::renderTree) {
         std::cout << std::string(--indent * 4, ' ') << "}" << std::endl;
@@ -604,41 +620,15 @@ void Map::renderLayers(std::shared_ptr<StyleLayerGroup> group) {
     for (auto it = group->layers.begin(), end = group->layers.end(); it != end; ++it, --i) {
         painter.setTranslucent();
         painter.setStrata(i * strata_thickness);
-        renderLayer(*it, Translucent);
+        renderLayer(*it, RenderPass::Translucent);
     }
     if (debug::renderTree) {
         std::cout << std::string(--indent * 4, ' ') << "}" << std::endl;
     }
 }
 
-void Map::renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass) {
-    if (layer_desc->layers) {
-        // This is a layer group. We render them during our translucent render pass.
-        if (pass == Translucent) {
-            const CompositeProperties &properties = layer_desc->getProperties<CompositeProperties>();
-            if (properties.isVisible()) {
-                gl::group group(std::string("group: ") + layer_desc->id);
-
-                if (debug::renderTree) {
-                    std::cout << std::string(indent++ * 4, ' ') << "+ " << layer_desc->id
-                              << " (Composite) {" << std::endl;
-                }
-
-                painter.pushFramebuffer();
-
-                renderLayers(layer_desc->layers);
-
-                GLuint texture = painter.popFramebuffer();
-
-                // Render the previous texture onto the screen.
-                painter.drawComposite(texture, properties);
-
-                if (debug::renderTree) {
-                    std::cout << std::string(--indent * 4, ' ') << "}" << std::endl;
-                }
-            }
-        }
-    } else if (layer_desc->type == StyleLayerType::Background) {
+void Map::renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass, const Tile::ID* id, const mat4* matrix) {
+    if (layer_desc->type == StyleLayerType::Background) {
         // This layer defines the background color.
     } else {
         // This is a singular layer.
@@ -675,15 +665,15 @@ void Map::renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass) {
                 if (!layer_desc->getProperties<FillProperties>().isVisible()) return;
                 break;
             case StyleLayerType::Line:
-                if (pass == Opaque) return;
+                if (pass == RenderPass::Opaque) return;
                 if (!layer_desc->getProperties<LineProperties>().isVisible()) return;
                 break;
             case StyleLayerType::Symbol:
-                if (pass == Opaque) return;
+                if (pass == RenderPass::Opaque) return;
                 if (!layer_desc->getProperties<SymbolProperties>().isVisible()) return;
                 break;
             case StyleLayerType::Raster:
-                if (pass == Translucent) return;
+                if (pass == RenderPass::Opaque) return;
                 if (!layer_desc->getProperties<RasterProperties>().isVisible()) return;
                 break;
             default:
@@ -694,7 +684,10 @@ void Map::renderLayer(std::shared_ptr<StyleLayer> layer_desc, RenderPass pass) {
             std::cout << std::string(indent * 4, ' ') << "- " << layer_desc->id << " ("
                       << layer_desc->type << ")" << std::endl;
         }
-
-        style_source.source->render(painter, layer_desc);
+        if (!id) {
+            style_source.source->render(painter, layer_desc);
+        } else {
+            style_source.source->render(painter, layer_desc, *id, *matrix);
+        }
     }
 }
