@@ -235,8 +235,6 @@ void Painter::render(const Style& style, const std::set<util::ptr<StyleSource>>&
     for (const util::ptr<StyleSource> &source : sources) {
         source->source->finishRender(*this);
     }
-
-    glFlush();
 }
 
 void Painter::renderLayers(util::ptr<StyleLayerGroup> group) {
