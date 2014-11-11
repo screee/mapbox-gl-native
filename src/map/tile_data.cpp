@@ -11,13 +11,13 @@ using namespace mbgl;
 
 TileData::TileData(Tile::ID const& id_, Map &map_, const util::ptr<SourceInfo> &source_)
     : id(id_),
+      name(util::sprintf<32>("%d/%d/%d", id.z, id.x, id.y)),
       state(State::initial),
       map(map_),
       source(source_),
       debugBucket(debugFontBuffer) {
     // Initialize tile debug coordinates
-    const std::string str = util::sprintf<32>("%d/%d/%d", id_.z, id_.x, id_.y);
-    debugFontBuffer.addText(str.c_str(), 50, 200, 5);
+    debugFontBuffer.addText(name.c_str(), 50, 200, 5);
 }
 
 TileData::~TileData() {

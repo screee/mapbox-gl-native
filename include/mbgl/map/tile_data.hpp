@@ -60,6 +60,7 @@ public:
 
 public:
     const Tile::ID id;
+    const std::string name;
     std::atomic<State> state;
 
 protected:
