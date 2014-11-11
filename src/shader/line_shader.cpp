@@ -18,17 +18,13 @@ LineShader::LineShader()
     }
 
     a_pos = glGetAttribLocation(program, "a_pos");
-    a_extrude = glGetAttribLocation(program, "a_extrude");
-    a_linesofar = glGetAttribLocation(program, "a_linesofar");
+    a_data = glGetAttribLocation(program, "a_data");
 }
 
 void LineShader::bind(char *offset) {
     glEnableVertexAttribArray(a_pos);
     glVertexAttribPointer(a_pos, 2, GL_SHORT, false, 8, offset + 0);
 
-    glEnableVertexAttribArray(a_extrude);
-    glVertexAttribPointer(a_extrude, 2, GL_BYTE, false, 8, offset + 4);
-
-    glEnableVertexAttribArray(a_linesofar);
-    glVertexAttribPointer(a_linesofar, 1, GL_SHORT, false, 8, offset + 6);
+    glEnableVertexAttribArray(a_data);
+    glVertexAttribPointer(a_data, 4, GL_BYTE, false, 8, offset + 4);
 }
