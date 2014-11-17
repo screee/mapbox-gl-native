@@ -70,7 +70,7 @@ Ensure you have git and other build essentials:
 
     sudo apt-get install git build-essential zlib1g-dev automake \
                          libtool xutils-dev make cmake pkg-config python-pip \
-                         libcurl4-openssl-dev libpng-dev libsqlite3-dev
+                         libcurl4-openssl-dev
 
 Install glfw3 dependencies:
 
