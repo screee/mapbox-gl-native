@@ -131,8 +131,7 @@ bool Statement::run() {
     } else if (err == SQLITE_ROW) {
         return true;
     } else {
-        std::string err_string = "failed to run statement: ";
-        throw std::runtime_error(err_string.append(sqlite3_sql(stmt)));
+        throw std::runtime_error(sqlite3_errstr(err));
     }
 }
 
