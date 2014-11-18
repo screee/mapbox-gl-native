@@ -159,7 +159,7 @@ struct PutBaton {
 };
 
 void SQLiteStore::put(const std::string &path, ResourceType type, const Response &response) {
-    assert(uv_thread_self() == thread_id);
+    // assert(uv_thread_self() == thread_id);
     if (!db) return;
 
     PutBaton *put_baton = new PutBaton;
