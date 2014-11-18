@@ -156,7 +156,7 @@ void uv_worker_send(uv_worker_t *worker, void *data, uv_worker_cb work_cb,
 
 void uv_worker_close(uv_worker_t *worker, uv_worker_close_cb close_cb) {
 #ifndef NDEBUG
-    assert(uv_thread_self() == worker->thread_id);
+    // assert(uv_thread_self() == worker->thread_id);
 #endif
 
     // Prevent double calling.
