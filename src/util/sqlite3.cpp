@@ -6,7 +6,8 @@
 namespace mapbox {
 namespace sqlite {
 
-Database::Database(const std::string &filename, int flags) {
+Database::Database(const std::string &filename, int flags)
+    : stopwatch_(filename) {
     const int err = sqlite3_open_v2(filename.c_str(), &db, flags, nullptr);
     if (err != SQLITE_OK) {
         Exception ex { err, sqlite3_errmsg(db) };
@@ -54,7 +55,8 @@ Statement Database::prepare(const char *query) {
     return std::move(Statement(db, query));
 }
 
-Statement::Statement(sqlite3 *db, const char *sql) {
+Statement::Statement(sqlite3 *db, const char *sql)
+    : stopwatch_(sql) {
     const int err = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if (err != SQLITE_OK) {
         stmt = nullptr;

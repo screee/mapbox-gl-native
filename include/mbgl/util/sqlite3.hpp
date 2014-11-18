@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mbgl/util/stopwatch.hpp>
+
 #include <string>
 #include <stdexcept>
 
@@ -44,6 +46,7 @@ public:
 
 private:
     sqlite3 *db = nullptr;
+    mbgl::util::stopwatch stopwatch_;
 };
 
 class Statement {
@@ -68,6 +71,7 @@ public:
 
 private:
     sqlite3_stmt *stmt = nullptr;
+    mbgl::util::stopwatch stopwatch_;
 };
 
 }

@@ -102,7 +102,7 @@ struct GetBaton {
 };
 
 void SQLiteStore::get(const std::string &path, GetCallback callback, void *ptr) {
-    assert(uv_thread_self() == thread_id);
+    // assert(uv_thread_self() == thread_id);
     if (!db || !*db) {
         if (callback) {
             callback(nullptr, ptr);

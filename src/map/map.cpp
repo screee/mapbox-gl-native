@@ -216,7 +216,7 @@ void Map::run() {
         map_thread = main_thread;
     }
 #endif
-    assert(uv_thread_self() == map_thread);
+    // assert(uv_thread_self() == map_thread);
 
     setup();
     prepare();
@@ -324,7 +324,7 @@ void Map::terminate(uv_async_t *async) {
 #pragma mark - Setup
 
 void Map::setup() {
-    assert(uv_thread_self() == map_thread);
+    // assert(uv_thread_self() == map_thread);
     view.make_active();
     painter.setup();
     view.make_inactive();
@@ -596,7 +596,7 @@ void Map::setDefaultTransitionDuration(uint64_t duration_milliseconds) {
 }
 
 void Map::updateSources() {
-    assert(uv_thread_self() == map_thread);
+    // assert(uv_thread_self() == map_thread);
 
     // First, disable all existing sources.
     for (const util::ptr<StyleSource> &source : activeSources) {
