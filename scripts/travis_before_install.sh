@@ -33,7 +33,7 @@ if [[ ${TRAVIS_OS_NAME} == "linux" ]]; then
 
 
     mapbox_time "install_mesa" \
-    mason install mesa 10.3.1
+    mason install mesa 10.3.2
 
     mapbox_time "install_awscli" \
     sudo pip install awscli
