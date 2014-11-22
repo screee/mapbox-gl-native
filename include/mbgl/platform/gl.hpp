@@ -8,11 +8,6 @@
     #if TARGET_OS_IPHONE
         #include <OpenGLES/ES2/gl.h>
         #include <OpenGLES/ES2/glext.h>
-        // #define glGenVertexArrays glGenVertexArraysOES
-        // #define glBindVertexArray glBindVertexArrayOES
-        // #define glDeleteVertexArrays glDeleteVertexArraysOES
-        // #define GL_ARB_vertex_array_object 1
-        // #define GL_DEPTH24_STENCIL8 GL_DEPTH24_STENCIL8_OES
     #elif TARGET_IPHONE_SIMULATOR
         #include <OpenGLES/ES2/gl.h>
         #include <OpenGLES/ES2/glext.h>
@@ -34,6 +29,7 @@
 namespace mbgl {
 namespace gl {
 
+// GL_ARB_vertex_array_object / GL_OES_vertex_array_object
 typedef void (* PFNGLBINDVERTEXARRAYPROC) (GLuint array);
 typedef void (* PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint* arrays);
 typedef void (* PFNGLGENVERTEXARRAYSPROC) (GLsizei n, GLuint* arrays);
@@ -43,8 +39,15 @@ extern PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
 extern PFNGLGENVERTEXARRAYSPROC GenVertexArrays;
 extern PFNGLISVERTEXARRAYPROC IsVertexArray;
 
+// GL_ARB_get_program_binary / GL_OES_get_program_binary
+typedef void (APIENTRYP PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
+typedef void (APIENTRYP PFNGLPROGRAMBINARYPROC) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
+typedef void (APIENTRYP PFNGLPROGRAMPARAMETERIPROC) (GLuint program, GLenum pname, GLint value);
+extern PFNGLGETPROGRAMBINARYPROC GetProgramBinary;
+extern PFNGLPROGRAMBINARYPROC ProgramBinary;
+extern PFNGLPROGRAMPARAMETERIPROC ProgramParameteri;
 
-// Debug group markers, useful for debuggin on iOS
+// Debug group markers, useful for debugging on iOS
 #if __APPLE__ && defined(DEBUG) && defined(GL_EXT_debug_marker)
 // static int indent = 0;
 inline void start_group(const std::string &str) {
