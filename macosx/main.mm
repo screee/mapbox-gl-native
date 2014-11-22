@@ -100,10 +100,14 @@ int main() {
     if (accessToken) map.setAccessToken([accessToken cStringUsingEncoding:[NSString defaultCStringEncoding]]);
 
     // Load style
-    const std::string path([[[NSBundle mainBundle] pathForResource:@"bright-v6" ofType:@"json" inDirectory:@"styles/"] UTF8String]);
-
-    map.setStyleURL(std::string("file://") + path);
-
+    if ([[NSProcessInfo processInfo] environment][@"MAPBOX_STYLE"]) {
+        const std::string path([[[NSProcessInfo processInfo] environment][@"MAPBOX_STYLE"] UTF8String]);
+        map.setStyleURL(std::string("file://") + path);
+    } else {
+        const std::string path([[[NSBundle mainBundle] pathForResource:@"bright-v6" ofType:@"json" inDirectory:@"styles/"] UTF8String]);
+        map.setStyleURL(std::string("file://") + path);
+    }
+    
     int ret = view.run();
 
     [reachability stopNotifier];
