@@ -30,6 +30,7 @@ namespace mbgl {
 namespace gl {
 
 // GL_ARB_vertex_array_object / GL_OES_vertex_array_object
+#define GL_VERTEX_ARRAY_BINDING 0x85B5
 typedef void (* PFNGLBINDVERTEXARRAYPROC) (GLuint array);
 typedef void (* PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint* arrays);
 typedef void (* PFNGLGENVERTEXARRAYSPROC) (GLsizei n, GLuint* arrays);
@@ -40,6 +41,10 @@ extern PFNGLGENVERTEXARRAYSPROC GenVertexArrays;
 extern PFNGLISVERTEXARRAYPROC IsVertexArray;
 
 // GL_ARB_get_program_binary / GL_OES_get_program_binary
+#define GL_PROGRAM_BINARY_RETRIEVABLE_HINT 0x8257
+#define GL_PROGRAM_BINARY_LENGTH           0x8741
+#define GL_NUM_PROGRAM_BINARY_FORMATS      0x87FE
+#define GL_PROGRAM_BINARY_FORMATS          0x87FF
 typedef void (* PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
 typedef void (* PFNGLPROGRAMBINARYPROC) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
 typedef void (* PFNGLPROGRAMPARAMETERIPROC) (GLuint program, GLenum pname, GLint value);
