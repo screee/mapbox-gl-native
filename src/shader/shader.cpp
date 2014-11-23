@@ -21,7 +21,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
     // Load binary shader if it exists
     bool skip_compile = false;
     std::string binaryFileName = mbgl::platform::defaultShaderCache() + name + ".bin";
-    if (gl::ProgramBinary != nullptr) {
+    if (!binaryFileName.empty() && (gl::ProgramBinary != nullptr)) {
         FILE *binaryFile = fopen(binaryFileName.c_str(), "rb");
         if (binaryFile != nullptr) {
             GLsizei binaryLength;
@@ -75,7 +75,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
         glAttachShader(program, fragShader);
 
         {
-            if (gl::ProgramParameteri != nullptr) {
+            if (!binaryFileName.empty() && (gl::ProgramParameteri != nullptr)) {
                 gl::ProgramParameteri(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
             }
 
@@ -135,7 +135,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
     }
 
-    if (!skip_compile && (gl::GetProgramBinary != nullptr)) {
+    if (!binaryFileName.empty() && !skip_compile && (gl::GetProgramBinary != nullptr)) {
         // Retrieve the program binary
         GLsizei binaryLength;
         GLenum binaryFormat;
