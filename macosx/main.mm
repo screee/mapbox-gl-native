@@ -4,6 +4,8 @@
 #include <mbgl/platform/default/glfw_view.hpp>
 
 #import <Foundation/Foundation.h>
+#include <fstream>
+#include <string>
 
 @interface URLHandler : NSObject
 @property (nonatomic) mbgl::Map *map;
@@ -50,6 +52,16 @@
     if (bearingString) {
         bearing = [bearingString doubleValue];
         hasBearing = true;
+    }
+    
+    NSString *styleString = [params objectForKey:@"style"];
+    if (styleString) {
+        
+        std::ifstream ifs([styleString UTF8String]);
+        std::string json( (std::istreambuf_iterator<char>(ifs) ),
+                            (std::istreambuf_iterator<char>()    ) );
+        
+        [self map]->setStyleJSON(json, "/Users/lucaswoj/Projects/mapbox-gl-native/styles/styles");
     }
 
     if ([self map]) {

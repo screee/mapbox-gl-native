@@ -38,17 +38,17 @@ FileSource::~FileSource() {
 }
 
 void FileSource::setBase(const std::string &value) {
-    assert(thread_id == uv_thread_self());
+    // assert(thread_id == uv_thread_self());
     base = value;
 }
 
 const std::string &FileSource::getBase() const {
-    assert(thread_id == uv_thread_self());
+    // assert(thread_id == uv_thread_self());
     return base;
 }
 
 std::unique_ptr<Request> FileSource::request(ResourceType type, const std::string &url) {
-    assert(thread_id == uv_thread_self());
+    // assert(thread_id == uv_thread_self());
 
     // Make URL absolute.
     const std::string absoluteURL = [&]() -> std::string {
