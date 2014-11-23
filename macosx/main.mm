@@ -58,10 +58,16 @@
     if (styleString) {
         
         std::ifstream ifs([styleString UTF8String]);
-        std::string json( (std::istreambuf_iterator<char>(ifs) ),
-                            (std::istreambuf_iterator<char>()    ) );
+        std::string json((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
         
-        [self map]->setStyleJSON(json, "/Users/lucaswoj/Projects/mapbox-gl-native/styles/styles");
+        std::string styleURL([styleString UTF8String]);
+        const size_t pos = styleURL.rfind('/');
+        std::string base = "";
+        if (pos != std::string::npos) {
+            base = styleURL.substr(0, pos + 1);
+        }
+
+        [self map]->setStyleJSON(json, base);
     }
 
     if ([self map]) {
