@@ -19,31 +19,34 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
     program = glCreateProgram();
 
     // Load binary shader if it exists
-    bool skip_compile = false;
+    bool skipCompile = false;
     std::string binaryFileName = mbgl::platform::defaultShaderCache() + name + ".bin";
     if (!binaryFileName.empty() && (gl::ProgramBinary != nullptr)) {
         FILE *binaryFile = fopen(binaryFileName.c_str(), "rb");
         if (binaryFile != nullptr) {
             GLsizei binaryLength;
             GLenum binaryFormat;
-            fread(&binaryLength, sizeof(binaryLength), 1, binaryFile);
-            fread(&binaryFormat, sizeof(binaryFormat), 1, binaryFile);
+            bool lengthOk = fread(&binaryLength, sizeof(binaryLength), 1, binaryFile) == sizeof(binaryLength);
+            bool formatOk = fread(&binaryFormat, sizeof(binaryFormat), 1, binaryFile) == sizeof(binaryFormat);
  
-            if (binaryLength > 0) {
+            if (lengthOk && formatOk && binaryLength > 0) {
                 void *binary = (void *)malloc(binaryLength);
-                fread(binary, binaryLength, 1, binaryFile);
+                bool binaryOk = fread(binary, binaryLength, 1, binaryFile) == (size_t)binaryLength;
 
-                gl::ProgramBinary(program, binaryFormat, binary, binaryLength);
+                if (binaryOk) {
+                    gl::ProgramBinary(program, binaryFormat, binary, binaryLength);
+
+                    // Check if the binary was valid
+                    GLint status;
+                    glGetProgramiv(program, GL_LINK_STATUS, &status);
+                    if (status == GL_TRUE) {
+                        skipCompile = true;
+                    }
+                }
 
                 free(binary);
                 binary = nullptr;
 
-                // Check if the binary was valid
-                GLint status;
-                glGetProgramiv(program, GL_LINK_STATUS, &status);
-                if (status == GL_TRUE) {
-                    skip_compile = true;
-                }
             }
 
             fclose(binaryFile);
@@ -53,7 +56,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
     GLuint vertShader;
     GLuint fragShader;
-    if (!skip_compile) {
+    if (!skipCompile) {
         if (!compileShader(&vertShader, GL_VERTEX_SHADER, vertSource)) {
             Log::Error(Event::Shader, "Vertex shader failed to compile: %s", vertSource);
             glDeleteProgram(program);
@@ -123,7 +126,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
                 log = nullptr;
             }
 
-            if (!skip_compile) {
+            if (!skipCompile) {
                 glDeleteShader(vertShader);
                 vertShader = 0;
                 glDeleteShader(fragShader);
@@ -135,7 +138,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
     }
 
-    if (!binaryFileName.empty() && !skip_compile && (gl::GetProgramBinary != nullptr)) {
+    if (!binaryFileName.empty() && !skipCompile && (gl::GetProgramBinary != nullptr)) {
         // Retrieve the program binary
         GLsizei binaryLength;
         GLenum binaryFormat;
@@ -159,7 +162,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
         }
     }
 
-    if (!skip_compile) {
+    if (!skipCompile) {
         // Remove the compiled shaders; they are now part of the program.
         glDetachShader(program, vertShader);
         glDeleteShader(vertShader);
