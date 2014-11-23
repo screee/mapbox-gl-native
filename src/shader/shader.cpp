@@ -36,7 +36,7 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
 
     {
-        if (gl::GetProgramBinary != nullptr) {
+        if (gl::ProgramParameteri != nullptr) {
             gl::ProgramParameteri(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
         }
     
