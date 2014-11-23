@@ -40,9 +40,9 @@ extern PFNGLGENVERTEXARRAYSPROC GenVertexArrays;
 extern PFNGLISVERTEXARRAYPROC IsVertexArray;
 
 // GL_ARB_get_program_binary / GL_OES_get_program_binary
-typedef void (APIENTRYP PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
-typedef void (APIENTRYP PFNGLPROGRAMBINARYPROC) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
-typedef void (APIENTRYP PFNGLPROGRAMPARAMETERIPROC) (GLuint program, GLenum pname, GLint value);
+typedef void (* PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
+typedef void (* PFNGLPROGRAMBINARYPROC) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
+typedef void (* PFNGLPROGRAMPARAMETERIPROC) (GLuint program, GLenum pname, GLint value);
 extern PFNGLGETPROGRAMBINARYPROC GetProgramBinary;
 extern PFNGLPROGRAMBINARYPROC ProgramBinary;
 extern PFNGLPROGRAMPARAMETERIPROC ProgramParameteri;
