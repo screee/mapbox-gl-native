@@ -54,8 +54,8 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
         }
     }
 
-    GLuint vertShader;
-    GLuint fragShader;
+    GLuint vertShader = 0;
+    GLuint fragShader = 0;
     if (!skipCompile) {
         if (!compileShader(&vertShader, GL_VERTEX_SHADER, vertSource)) {
             Log::Error(Event::Shader, "Vertex shader failed to compile: %s", vertSource);
