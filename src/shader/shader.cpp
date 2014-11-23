@@ -105,13 +105,14 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
             // Write the binary to a file            
             std::string binaryFileName = mbgl::platform::defaultShaderCache() + name + ".bin";
             FILE *binaryFile = fopen(binaryFileName.c_str(), "wb");
-            assert(binaryFile != nullptr);
-            fwrite(&binaryLength, sizeof(binaryLength), 1, binaryFile);
-            fwrite(&binaryFormat, sizeof(binaryFormat), 1, binaryFile);
-            fwrite(binary, binaryLength, 1, binaryFile);
-            fclose(binaryFile);
+            if (binaryFile != nullptr) {
+                fwrite(&binaryLength, sizeof(binaryLength), 1, binaryFile);
+                fwrite(&binaryFormat, sizeof(binaryFormat), 1, binaryFile);
+                fwrite(binary, binaryLength, 1, binaryFile);
+                fclose(binaryFile);
+                binaryFile = nullptr;
+            }
             free(binary);
-            binaryFile = nullptr;
             binary = nullptr;
         }
     }
