@@ -26,6 +26,7 @@
       },
       'sources': [
         '../platform/default/cache_database_tmp.cpp',
+        '../platform/default/shader_cache_tmp.cpp',
         '../platform/default/log_stderr.cpp',
         '../platform/default/string_stdlib.cpp',
         '../platform/default/http_request_baton_curl.cpp',

@@ -2,9 +2,11 @@
 #include <mbgl/platform/gl.hpp>
 #include <mbgl/util/stopwatch.hpp>
 #include <mbgl/platform/log.hpp>
+#include <mbgl/platform/platform.hpp>
 
 #include <cstring>
 #include <cstdlib>
+#include <cassert>
 
 using namespace mbgl;
 
@@ -34,19 +36,24 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
 
     {
+        if (gl::GetProgramBinary != nullptr) {
+            gl::ProgramParameteri(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+        }
+    
         // Link program
         GLint status;
         glLinkProgram(program);
 
         glGetProgramiv(program, GL_LINK_STATUS, &status);
         if (status == 0) {
-            GLint logLength;
+            GLsizei logLength;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength > 0) {
                 GLchar *log = (GLchar *)malloc(logLength);
                 glGetProgramInfoLog(program, logLength, &logLength, log);
                 Log::Error(Event::Shader, "Program failed to link: %s", log);
                 free(log);
+                log = nullptr;
             }
 
             glDeleteShader(vertShader);
@@ -66,13 +73,14 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
 
         glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
         if (status == 0) {
-            GLint logLength;
+            GLsizei logLength;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength > 0) {
                 GLchar *log = (GLchar *)malloc(logLength);
                 glGetProgramInfoLog(program, logLength, &logLength, log);
                 Log::Error(Event::Shader, "Program failed to validate: %s", log);
                 free(log);
+                log = nullptr;
             }
 
             glDeleteShader(vertShader);
@@ -83,6 +91,29 @@ Shader::Shader(const char *name_, const GLchar *vertSource, const GLchar *fragSo
             program = 0;
         }
 
+    }
+
+    if (gl::GetProgramBinary != nullptr) {
+        // Retrieve the program binary
+        GLsizei binaryLength;
+        glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
+        if (binaryLength > 0) {
+            GLenum binaryFormat;
+            void *binary = (void *)malloc(binaryLength);
+            gl::GetProgramBinary(program, binaryLength, NULL, &binaryFormat, binary);
+
+            // Write the binary to a file            
+            std::string binaryFileName = mbgl::platform::defaultShaderCache() + name + ".bin";
+            FILE *binaryFile = fopen(binaryFileName.c_str(), "wb");
+            assert(binaryFile != nullptr);
+            fwrite(&binaryLength, sizeof(binaryLength), 1, binaryFile);
+            fwrite(&binaryFormat, sizeof(binaryFormat), 1, binaryFile);
+            fwrite(binary, binaryLength, 1, binaryFile);
+            fclose(binaryFile);
+            free(binary);
+            binaryFile = nullptr;
+            binary = nullptr;
+        }
     }
 
     // Remove the compiled shaders; they are now part of the program.
@@ -100,20 +131,21 @@ bool Shader::compileShader(GLuint *shader, GLenum type, const GLchar *source) {
 
     *shader = glCreateShader(type);
     const GLchar *strings[] = { source };
-    const GLint lengths[] = { (GLint)strlen(source) };
+    const GLsizei lengths[] = { (GLsizei)strlen(source) };
     glShaderSource(*shader, 1, strings, lengths);
 
     glCompileShader(*shader);
 
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
     if (status == 0) {
-        GLint logLength;
+        GLsizei logLength;
         glGetShaderiv(*shader, GL_INFO_LOG_LENGTH, &logLength);
         if (logLength > 0) {
             GLchar *log = (GLchar *)malloc(logLength);
             glGetShaderInfoLog(*shader, logLength, &logLength, log);
             Log::Error(Event::Shader, "Shader failed to compile: %s", log);
             free(log);
+            log = nullptr;
         }
 
         glDeleteShader(*shader);
@@ -125,7 +157,7 @@ bool Shader::compileShader(GLuint *shader, GLenum type, const GLchar *source) {
 }
 
 Shader::~Shader() {
-    if (program) {
+    if (program) {    
         glDeleteProgram(program);
         program = 0;
         valid = false;
